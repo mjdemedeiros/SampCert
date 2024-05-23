@@ -3,6 +3,11 @@ on:
     branches:
       - 'main'
   pull_request:
+    types:
+    - opened
+    - reopened
+    - synchronize
+    - ready_for_review
 
 name: Extract, build, run
 
@@ -10,6 +15,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+	if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
     steps:
       - name: install elan
         run: |
