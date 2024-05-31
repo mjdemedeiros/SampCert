@@ -186,6 +186,9 @@ def tc_DiscreteGaussianSampleLoop := (SLang_Capsid, DiscreteGaussianSampleLoop )
 def tc_DiscreteGaussianSample := (SLang_Capsid, DiscreteGaussianSample)
 
 
+-- Remaining two examples fail to extract becasue they're looking for
+-- a name X, but there is only the name tc_X. Fix the frontend.
+
 attribute [export_dafny] tc_UniformSample
 attribute [export_dafny] tc_BernoulliSample
 attribute [export_dafny] tc_BernoulliExpNegSampleUnitLoop

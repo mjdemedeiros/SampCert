@@ -94,7 +94,7 @@ partial def toDafnyTyp (env : List String) (e : Expr) : MetaM Typ := do
   | .proj .. => throwError "toDafnyTyp: not supported -- projection {e}"
 
 partial def toDafnyExpr (dname : String) (env : List String) (e : Expr) : MetaM Expression := do
-  -- IO.println s!" ==> translate  {<- Lean.Meta.ppExpr e}"
+  -- IO.println s!" ==> {<- Lean.Meta.ppExpr e}"
   -- IO.println s!" => translate  {e}"
   -- let e_whnf <- Lean.Meta.withTransparency .reducible $ Lean.Meta.whnf e
   -- IO.println s!" --> reduce     {<- Lean.Meta.ppExpr e_whnf}"
@@ -180,7 +180,8 @@ partial def toDafnyExpr (dname : String) (env : List String) (e : Expr) : MetaM 
           else
             let args' ← args.mapM (toDafnyExpr dname env)
             return .monadic name.toString args'.toList
-        else throwError "toDafnyExpr: not supported -- application of {fn} to {args}, info.type {info.type}"
+        else
+          throwError "toDafnyExpr: not supported -- application of {fn} to {args}, info.type {info.type}"
       else if let .bvar _ := fn
           -- Coin...
            then return .monadic dname [(← toDafnyExpr dname env args[0]!)]
@@ -265,7 +266,7 @@ Expects a pair of a Capsid instance, and a program.
 -/
 def toDafnySLangDefIn (declName: Name) : MetaM MDef := do
   let info ← getConstInfo declName
-  IO.println s!" - Working on {declName}"
+  -- IO.println s!" - Working on {declName}"
   match info with
     | ConstantInfo.defnInfo _ =>
       -- IO.println s!" - Type: {info.type}"
