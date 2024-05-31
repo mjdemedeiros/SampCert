@@ -33,7 +33,7 @@ def readCapsidProg (e : Expr) : MetaM (Option (Name × Name)) :=
     return none
 
 def IsWFMonadic (capsidM : Name) (e: Expr) : MetaM Bool :=
-  IO.println s!" - Checking if {e} is WF monadic" >>= fun _ =>
+  -- IO.println s!" - Checking if {e} is WF monadic" >>= fun _ =>
   match e with
   | .app (.const n ..) _ => return (n = capsidM)
   | .app .. => return true -- Need to work out details of this one, related to translation of dependent types
@@ -74,8 +74,15 @@ partial def toDafnyTyp (capsidM : Name) (env : List String) (e : Expr) : MetaM T
   | .proj .. => throwError "toDafnyTyp: not supported -- projection {e}"
 
 partial def toDafnyExpr (capsidM : Name) (dname : String) (env : List String) (e : Expr) : MetaM Expression := do
-  IO.println s!"      + translate {e}"
-  match e with
+  throwError "[panic] at toDafnyExpr"
+
+  IO.println s!" ==> translate  {<- Lean.Meta.ppExpr e}"
+  -- IO.println s!" => translate  {e}"
+  let e_whnf <- Lean.Meta.withTransparency .reducible $ Lean.Meta.whnf e
+  IO.println s!" --> reduce     {<- Lean.Meta.ppExpr e_whnf}"
+  IO.println s!" --> reduce     {e_whnf}"
+  let r <-
+  match e_whnf with
   | .bvar i => return .name (env[i]!)
   | .fvar .. => throwError "toDafnyExpr: not supported -- free variable {e}"
   | .mvar .. => throwError "toDafnyExpr: not supported -- meta variable {e}"
@@ -89,7 +96,13 @@ partial def toDafnyExpr (capsidM : Name) (dname : String) (env : List String) (e
       let info ← getConstInfo name
       match name with
       | ``pure => return .pure (← toDafnyExpr capsidM dname env args[3]!)
-      | ``bind => return .bind (← toDafnyExpr capsidM dname env args[4]!) (← toDafnyExpr capsidM dname env args[5]!)
+      | ``bind => do
+        IO.println s!" --> bind with {<- Lean.Meta.ppExpr args[4]!} //  {<- Lean.Meta.ppExpr args[5]!}"
+        let v1 ← toDafnyExpr capsidM dname env args[4]!
+        IO.println s!" --> v1 complete"
+        let v2 ← toDafnyExpr capsidM dname env args[5]!
+        IO.println s!" --> bind complete"
+        return .bind v1 v2
       | ``ite => return .ite (← toDafnyExpr capsidM dname env args[1]!) (← toDafnyExpr capsidM dname env args[3]!) (← toDafnyExpr capsidM dname env args[4]!)
       | ``dite => return .ite (← toDafnyExpr capsidM dname env args[1]!) (← toDafnyExpr capsidM dname ("dummy" :: env) (chopLambda args[3]!)) (← toDafnyExpr capsidM dname ("dummy" :: env) (chopLambda args[4]!))
       | ``throwThe => return .throw (← toDafnyExpr capsidM dname env args[4]!)
@@ -154,6 +167,8 @@ partial def toDafnyExpr (capsidM : Name) (dname : String) (env : List String) (e
   | .lit (.strVal s) => return .str s
   | .mdata .. => throwError "toDafnyExpr: not supported -- meta {e}"
   | .proj .. => throwError "toDafnyExpr: not supported -- projection {e}"
+  IO.println s!" <== complete {r}"
+  return r
 
 end
 
@@ -237,7 +252,8 @@ def toDafnySLangDefIn (declName: Name) : MetaM MDef := do
 
           -- Now I need to get the program body from the program mane
           let progInfo <- getConstInfoDefn program_name
-          IO.println s!" - Got program value {progInfo.value}"
+          -- IO.println s!" - Got program value {progInfo.value}"
+          IO.println s!" - Got program value {<- Lean.Meta.ppExpr progInfo.value}"
           let capsidInfo <- getConstInfoDefn capsid_instance_name
           IO.println s!" - Got capsid value {capsidInfo.value}"
 
