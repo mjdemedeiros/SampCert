@@ -8,14 +8,13 @@ Authors: Jean-Baptiste Tristan
 --   CapsidM_inst : Monad M
 --   capsWhile :  (T → Bool) → (T → M T) → (init : T) → M T
 
+import Mathlib.Data.PNat.Basic
 
 class Capsid (CapsM : Type u -> Type v) extends Monad CapsM where
   capsWhile : (cond : T → Bool) → (body : T → CapsM T) → T → CapsM T
-
-  -- This shoud be removed
   capsUntil : (body : CapsM T) -> (cond : T → Bool) -> CapsM T
-
-
+  -- capsUniformP2 : (n : ℕ+) -> CapsM ℕ
+  -- The constants have universe issues
 
 
 

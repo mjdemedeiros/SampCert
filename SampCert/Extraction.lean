@@ -54,10 +54,6 @@ open SLang
 -- since we cannot control the attributes that the users put on their DSL terms.
 
 
-
--- Here's the next question... do we use whnf, or do we write our own normalizer?
-
-
 -- #eval whnf (Lean.Expr.const ``BernoulliSample []) -- works, but not what I want
 -- #eval whnf (Lean.Expr.const ``probWhile []) -- works, like expected
 
@@ -139,9 +135,11 @@ Additionally, the following names are protected:
 -- instance : Capsid SLang where
 --   capsWhile := probWhile
 
+
 instance SLang_Capsid : Capsid SLang where
   capsWhile := probWhile
   capsUntil := probUntil
+  -- capsUniformP2 := UniformPowerOfTwoSample
 
 
 
@@ -185,10 +183,12 @@ def tc_DiscreteLaplaceSample := (SLang_Capsid, DiscreteLaplaceSample )
 def tc_DiscreteGaussianSampleLoop := (SLang_Capsid, DiscreteGaussianSampleLoop )
 def tc_DiscreteGaussianSample := (SLang_Capsid, DiscreteGaussianSample)
 
+-- attribute [export_dafny] tc_BernoulliExpNegSampleGenLoop
 
 -- Remaining two examples fail to extract becasue they're looking for
 -- a name X, but there is only the name tc_X. Fix the frontend.
 
+/-
 attribute [export_dafny] tc_UniformSample
 attribute [export_dafny] tc_BernoulliSample
 attribute [export_dafny] tc_BernoulliExpNegSampleUnitLoop
@@ -204,3 +204,4 @@ attribute [export_dafny] tc_DiscreteLaplaceSampleLoopIn2
 attribute [export_dafny] tc_DiscreteLaplaceSample
 attribute [export_dafny] tc_DiscreteGaussianSampleLoop
 attribute [export_dafny] tc_DiscreteGaussianSample
+-/
