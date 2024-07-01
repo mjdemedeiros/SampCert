@@ -11,8 +11,13 @@ noncomputable section
 
 namespace SLang
 
-def DiscreteLaplaceGenSample (num : PNat) (den : PNat) (μ : ℤ) : SLang ℤ := do
-  let s ← DiscreteLaplaceSample num den
-  return s + μ
+
+-- FIXME: dite vs ite with Nat.toPNat'? Which breaks fewer things downstream?
+def DiscreteLaplaceGenSample (num : Nat) (den : PNat) (μ : ℤ) : SLang ℤ :=
+    dite (0 < num)
+      (fun Hnz => do
+        let s ← DiscreteLaplaceSample ⟨ num, Hnz ⟩ den
+        return s + μ)
+      (fun _ => return μ)
 
 end SLang

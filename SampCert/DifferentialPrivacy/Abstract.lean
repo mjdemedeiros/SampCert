@@ -56,15 +56,16 @@ class DPSystem (T : Type) where
   A noise mechanism (eg. Laplace, Discrete Gaussian, etc)
   Paramaterized by a query, sensitivity, and a (rational) security paramater.
   -/
-  noise : Query T ℤ → (sensitivity : ℕ+) → (num : ℕ+) → (den : ℕ+) → Mechanism T ℤ
+  noise : Query T ℤ → (sensitivity : ℕ+) → (num : ℕ) → (den : ℕ+) → Mechanism T ℤ
   /--
   Adding noise to a query makes it private.
   -/
-  noise_prop : ∀ q : List T → ℤ, ∀ Δ εn εd : ℕ+, sensitivity q Δ → prop (noise q Δ εn εd) (εn / εd)
+  noise_prop : ∀ q : List T → ℤ, ∀ Δ : ℕ+, ∀ εn : ℕ, ∀ εd : ℕ+, sensitivity q Δ → prop (noise q Δ εn εd) (εn / εd)
   /--
   Privacy composes by addition.
   -/
-  compose_prop : {U V : Type} → [MeasurableSpace U] → [Countable U] → [DiscreteMeasurableSpace U] → [Inhabited U] → [MeasurableSpace V] → [Countable V] → [DiscreteMeasurableSpace V] → [Inhabited V] → ∀ m₁ : Mechanism T U, ∀ m₂ : Mechanism T V, ∀ ε₁ ε₂ ε₃ ε₄ : ℕ+,
+  compose_prop : {U V : Type} → [MeasurableSpace U] → [Countable U] → [DiscreteMeasurableSpace U] → [Inhabited U] → [MeasurableSpace V] → [Countable V] → [DiscreteMeasurableSpace V] → [Inhabited V] → ∀ m₁ : Mechanism T U, ∀ m₂ : Mechanism T V,
+    ∀ ε₁ : ℕ, ∀ ε₂ : ℕ+, ∀ ε₃ : ℕ, ∀ ε₄ : ℕ+,
     prop m₁ (ε₁ / ε₂) → prop m₂ (ε₃ / ε₄) → prop (privCompose m₁ m₂) ((ε₁ / ε₂) + (ε₃ / ε₄))
   /--
   Requirement for postcomposition to hold.
@@ -73,7 +74,7 @@ class DPSystem (T : Type) where
   /--
   Privacy is invariant under post-processing.
   -/
-  postprocess_prop : {U : Type} → [MeasurableSpace U] → [Countable U] → [DiscreteMeasurableSpace U] → [Inhabited U] → { pp : U → V } → postprocess_prop_f pp → ∀ m : Mechanism T U, ∀ ε₁ ε₂ : ℕ+,
+  postprocess_prop : {U : Type} → [MeasurableSpace U] → [Countable U] → [DiscreteMeasurableSpace U] → [Inhabited U] → { pp : U → V } → postprocess_prop_f pp → ∀ m : Mechanism T U, ∀ ε₁ : ℕ, ∀ ε₂ : ℕ+,
    prop m (ε₁ / ε₂) → prop (privPostProcess m pp) (ε₁ / ε₂)
 
 @[simp]

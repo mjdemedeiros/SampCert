@@ -20,7 +20,7 @@ open Classical Set
 
 namespace SLang
 
-lemma privPostProcess_DP_bound {nq : Mechanism T U} {ε₁ ε₂ : ℕ+} (h : PureDP nq ((ε₁ : ℝ) / ε₂)) (f : U → V) :
+lemma privPostProcess_DP_bound {nq : Mechanism T U} {ε₁ : ℕ} {ε₂ : ℕ+} (h : PureDP nq ((ε₁ : ℝ) / ε₂)) (f : U → V) :
   DP (privPostProcess nq f) (((ε₁ : ℝ) / ε₂)) := by
   simp [PureDP] at *
   rcases h with ⟨ha, _⟩
@@ -46,7 +46,7 @@ lemma privPostProcess_DP_bound {nq : Mechanism T U} {ε₁ ε₂ : ℕ+} (h : Pu
 /--
 ``privPostProcess`` satisfies pure DP, for any surjective postprocessing function.
 -/
-theorem PureDP_PostProcess {f : U → V} (sur : Function.Surjective f) (nq : Mechanism T U) (ε₁ ε₂ : ℕ+) (h : PureDP nq ((ε₁ : ℝ) / ε₂)) :
+theorem PureDP_PostProcess {f : U → V} (sur : Function.Surjective f) (nq : Mechanism T U) (ε₁ : ℕ) (ε₂ : ℕ+) (h : PureDP nq ((ε₁ : ℝ) / ε₂)) :
   PureDP (privPostProcess nq f) (((ε₁ : ℝ) / ε₂)) := by
   simp [PureDP] at *
   have hc := h
