@@ -219,7 +219,8 @@ lemma condition_to_subset (f : U → V) (g : U → ENNReal) (x : V) :
 /--
 Postprocessing by a surjection preserves `NonZeroNQ`.
 -/
-theorem privPostProcess_NonZeroNQ {nq : Mechanism T U} {f : U → V} (nn : NonZeroNQ nq) (sur : Function.Surjective f) :
+theorem privPostProcess_NonZeroNQ {nq : Mechanism T U} {f : U → V}
+(nn : NonZeroNQ nq) (sur : Function.Surjective f) :
   NonZeroNQ (privPostProcess nq f) := by
   simp [NonZeroNQ, Function.Surjective, privPostProcess] at *
   intros l n
@@ -230,28 +231,6 @@ theorem privPostProcess_NonZeroNQ {nq : Mechanism T U} {f : U → V} (nn : NonZe
   constructor
   . rw [h]
   . apply nn
-
-theorem privPostProcess_NonTopSum {nq : List T → SLang U} (f : U → V) (nt : NonTopSum nq) :
-  NonTopSum (privPostProcess nq f) := by
-  simp [NonTopSum, privPostProcess] at *
-  intros l
-  have nt := nt l
-  rw [← ENNReal.tsum_fiberwise _ f] at nt
-  conv =>
-    right
-    left
-    right
-    intro n
-    rw [condition_to_subset]
-  have A : ∀ x : V, f ⁻¹' {x} = {y | x = f y} := by
-    aesop
-  conv =>
-    right
-    left
-    right
-    intro x
-    rw [← A]
-  trivial
 
 
 /--
@@ -275,8 +254,8 @@ lemma privCompose_ext [dps : DPSystem T] : {U V : Type} → [MeasurableSpace U] 
 /--
 Wrapper around abstract post processing rule which is easier to unify against
 -/
-lemma privPostProcess_ext [dps : DPSystem T] : {U : Type} → [MeasurableSpace U] → [Countable U] → [DiscreteMeasurableSpace U] → [Inhabited U] → { pp : U → V } → Function.Surjective pp → ∀ m : Mechanism T U, ∀ ε₁ ε₂ : ℕ+, ∀ ε : ℝ,
-   dps.prop m (ε₁ / ε₂) -> (ε = ε₁ / ε₂) → dps.prop (privPostProcess m pp) ε := by
+lemma privPostProcess_ext [dps : DPSystem T] : {U : Type} → [MeasurableSpace U] → [Countable U] → [DiscreteMeasurableSpace U] → [Inhabited U] → { pp : U → V } → ∀ m : Mechanism T U, ∀ ε₁ ε₂ : ℕ+, ∀ ε : ℝ,
+    dps.postprocess_prop_f pp ->dps.prop m (ε₁ / ε₂) -> (ε = ε₁ / ε₂) → dps.prop (privPostProcess m pp) ε := by
    intros _ _ _ _ _ _ _ _ _ _ _ _ Hε
    rw [Hε]
    apply dps.postprocess_prop <;> aesop
