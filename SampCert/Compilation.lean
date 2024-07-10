@@ -37,7 +37,7 @@ def uniformP2_external (_ : ℕ+) : ℕ := 0
 External compilation of a while loop
 -/
 -- MARKUSDE: Remove the body of this function.
-def while_external (cond : T -> Bool) (vBody : T -> T) (init : T) : T := init
+def while_external (cond : T -> Bool) (vBody : T -> T) (init : T) : T := sorry
 
 /--
 Inductive datatype which defines how primitive SLang functions can translate into
@@ -46,14 +46,14 @@ into a value.
 inductive isComp : {T : Type} -> SLang T -> T -> (Type 1)
 | uniformP2 (n : ℕ+) :
     @isComp ℕ (SLang.UniformPowerOfTwoSample n) (uniformP2_external n)
-| pure (T : Type) (v : T) :
+| pure {T : Type} {v : T} :
     @isComp T (SLang.probPure v) v
 | bind {P Q : Type} {p : P} {q : P -> Q} (s1 : SLang P) (s2 : P -> SLang Q) :
     @isComp P s1 p ->
     @isComp Q (s2 p) (q p) ->
     @isComp Q (SLang.probBind s1 s2) (let v := p; q v)
-| while (T : Type) (cond : T -> Bool) (body : T -> SLang T) (vBody : T -> T) (init : T) :
-    ∀ t : T, @isComp T (body t) (vBody t) ->
+| while {T : Type} (cond : T -> Bool) (body : T -> SLang T) (vBody : T -> T) (init : T) :
+    (∀ t : T, @isComp T (body t) (vBody t)) ->
     @isComp T (SLang.probWhile cond body init) (while_external cond vBody init)
 
 /--
@@ -81,7 +81,7 @@ namespace SLang
 Default `probPure` compilation
 -/
 def probPure_canCompile {T : Type} {v : T} : canCompile (SLang.probPure v) :=
-  ⟨ v, isComp.pure T v ⟩
+  ⟨ v, isComp.pure ⟩
 
 /--
 Default `probPure` compilation
@@ -89,33 +89,50 @@ Default `probPure` compilation
 def probBind_canCompile {T U : Type} {p : SLang T} {f : T -> SLang U}
   (C1 : canCompile p) (C2 : ∀ t, canCompile (f t)) :
   canCompile (SLang.probBind p f) :=
-  ⟨ let v := C1.fst; (C2 v).fst,
-    let ⟨ v1, H1 ⟩ := C1 ;
-    let ⟨ v2, H2 ⟩ := (C2 C1.fst) ;
+  ⟨ (C2 C1.fst).fst,
     by
-      -- FIXME: Can push this proof through, but ideally this would avoid
-      -- heavy tactic use. Rethink this a little bit.
-
-      -- #check (isComp.bind p f H1 ?G1 )
-      sorry ⟩
+      rcases C1 with ⟨ v1, H1 ⟩
+      simp only []
+      rcases (C2 v1) with ⟨ v2, H2 ⟩
+      simp only []
+      apply (isComp.bind p f H1 H2) ⟩
 
 
 /--
 Default `UniformPowerOfTwoSample` compilation
 -/
-def UniformPowerOfTwoSample_canCompile : Prop := sorry
+def UniformPowerOfTwoSample_canCompile (n : ℕ+) : canCompile (SLang.UniformPowerOfTwoSample n) :=
+  ⟨ uniformP2_external n, isComp.uniformP2 n ⟩
 
 
 /--
 Default `probWhile` compilation
 -/
-def probWhile_canCompile : Prop := sorry
-
+def probWhile_canCompile {T : Type} (cond : T -> Bool) (body : T -> SLang T) (init : T) (C : ∀ t : T, canCompile (body t)) :
+  canCompile (SLang.probWhile cond body init) :=
+  ⟨ while_external cond (fun t => (C t).fst) init,
+    by
+      apply (isComp.while cond body (fun t => (C t).fst) init)
+      intro t
+      apply (C t).2 ⟩
 
 /--
 Default `probUntil` compilation
 -/
-def probUntil_canCompile : Prop := sorry
+noncomputable def probUntil_canCompile {T : Type} (body : SLang T) (cond : T -> Bool) (C : canCompile body) : canCompile (SLang.probUntil body cond) := by
+  unfold SLang.probUntil
+  apply probBind_canCompile
+  · apply C
+  · intro init
+    apply (probWhile_canCompile _ _ init)
+    intro _
+    apply C
+
+
+
+#reduce (compile (SLang.probUntil (SLang.probPure (5 : ℕ)) (fun (_ : ℕ) => true)) (probUntil_canCompile _ _ probPure_canCompile))
+
+
 
 
 -- TODO:
