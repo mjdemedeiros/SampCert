@@ -64,11 +64,13 @@ def probZero : SLang T := λ _ : T => 0
 /--
 The Dirac distribution as a ``SLang``.
 -/
+@[extern "extern_probPure"]
 def probPure (a : T) : SLang T := fun a' => if a' = a then 1 else 0
 
 /--
 Monadic bind for ``SLang`` values.
 -/
+-- @[extern "extern_probBind"]
 def probBind (p : SLang T) (f : T → SLang U) : SLang U :=
   fun b => ∑' a, p a * f a b
 
@@ -80,7 +82,7 @@ instance : Monad SLang where
 ``SLang`` value for the uniform distribution over ``m`` elements, where
 the number``m`` is the largest power of two that is at most ``n``.
 -/
--- MARKUSDE: I would like to change this to ``probUniformP2`` once it doesn't break extraction.
+-- @[extern "extern_UniformPowerOfTwoSample"]
 def UniformPowerOfTwoSample (n : ℕ+) : SLang ℕ :=
   toSLang (PMF.uniformOfFintype (Fin (2 ^ (log 2 n))))
   --((PMF.uniformOfFintype (Fin (2 ^ (log 2 n)))) : PMF ℕ).1
@@ -108,6 +110,7 @@ def probWhileCut (cond : T → Bool) (body : T → SLang T) (n : Nat) (a : T) : 
 /--
 ``SLang`` value for an unbounded iteration of a loop.
 -/
+-- @[extern "extern_probWhile"]
 def probWhile (cond : T → Bool) (body : T → SLang T) (init : T) : SLang T :=
   fun x => ⨆ (i : ℕ), (probWhileCut cond body i init x)
 
