@@ -30,14 +30,25 @@ namespace SComp
 /--
 External compilation of the uniform random power of 2 sampler.
 -/
--- MARKUSDE: Remove the body of this function.
-def uniformP2_external (_ : ℕ+) : ℕ := 0
+opaque uniformP2_external_binding (_ : ℕ+) : ℕ
+
+noncomputable def uniformP2_external (n : ℕ+) : ℕ := uniformP2_external_binding n
+
+variable [Inhabited T]
+
+/--
+Binding to impure FFI function for loop
+-/
+opaque while_external_binding (cond : T -> Bool) (vBody : T -> T) (init : T) : T
 
 /--
 External compilation of a while loop
 -/
--- MARKUSDE: Remove the body of this function.
-def while_external (cond : T -> Bool) (vBody : T -> T) (init : T) : T := sorry
+noncomputable def while_external (cond : T -> Bool) (vBody : T -> T) (init : T) : T := while_external_binding cond vBody init
+
+
+
+
 
 /--
 Inductive datatype which defines how primitive SLang functions can translate into
@@ -52,7 +63,7 @@ inductive isComp : {T : Type} -> SLang T -> T -> (Type 1)
     @isComp P s1 p ->
     @isComp Q (s2 p) (q p) ->
     @isComp Q (SLang.probBind s1 s2) (let v := p; q v)
-| while {T : Type} (cond : T -> Bool) (body : T -> SLang T) (vBody : T -> T) (init : T) :
+| while {T : Type} [Inhabited T] (cond : T -> Bool) (body : T -> SLang T) (vBody : T -> T) (init : T) :
     (∀ t : T, @isComp T (body t) (vBody t)) ->
     @isComp T (SLang.probWhile cond body init) (while_external cond vBody init)
 
@@ -101,14 +112,14 @@ def probBind_canCompile {T U : Type} {p : SLang T} {f : T -> SLang U}
 /--
 Default `UniformPowerOfTwoSample` compilation
 -/
-def UniformPowerOfTwoSample_canCompile (n : ℕ+) : canCompile (SLang.UniformPowerOfTwoSample n) :=
+noncomputable def UniformPowerOfTwoSample_canCompile (n : ℕ+) : canCompile (SLang.UniformPowerOfTwoSample n) :=
   ⟨ uniformP2_external n, isComp.uniformP2 n ⟩
 
 
 /--
 Default `probWhile` compilation
 -/
-def probWhile_canCompile {T : Type} (cond : T -> Bool) (body : T -> SLang T) (init : T) (C : ∀ t : T, canCompile (body t)) :
+noncomputable def probWhile_canCompile {T : Type} [Inhabited T] (cond : T -> Bool) (body : T -> SLang T) (init : T) (C : ∀ t : T, canCompile (body t)) :
   canCompile (SLang.probWhile cond body init) :=
   ⟨ while_external cond (fun t => (C t).fst) init,
     by
@@ -119,7 +130,7 @@ def probWhile_canCompile {T : Type} (cond : T -> Bool) (body : T -> SLang T) (in
 /--
 Default `probUntil` compilation
 -/
-noncomputable def probUntil_canCompile {T : Type} (body : SLang T) (cond : T -> Bool) (C : canCompile body) : canCompile (SLang.probUntil body cond) := by
+noncomputable def probUntil_canCompile {T : Type} [Inhabited T] (body : SLang T) (cond : T -> Bool) (C : canCompile body) : canCompile (SLang.probUntil body cond) := by
   unfold SLang.probUntil
   apply probBind_canCompile
   · apply C
@@ -129,8 +140,7 @@ noncomputable def probUntil_canCompile {T : Type} (body : SLang T) (cond : T -> 
     apply C
 
 
-
-#reduce (compile (SLang.probUntil (SLang.probPure (5 : ℕ)) (fun (_ : ℕ) => true)) (probUntil_canCompile _ _ probPure_canCompile))
+#reduce (compile (SLang.probUntil (SLang.probPure (6 : ℕ)) (fun (_ : ℕ) => false)) (probUntil_canCompile _ _ probPure_canCompile))
 
 
 
