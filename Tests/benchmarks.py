@@ -161,6 +161,11 @@ Benchmark: Discrete Gaussians \n\
     dg_mean = []
     dg_stdev = []
 
+    dgls_mean = []
+    dgls_stdev = []
+    dgls1_mean = []
+    dgls1_stdev = []
+
     # IBM sample_dgauss
     ibm_dg_mean = []
     ibm_dg_stdev = []
@@ -174,8 +179,8 @@ Benchmark: Discrete Gaussians \n\
     measured_attempts = 2000
     num_attempts = warmup_attempts + measured_attempts
 
-    for epsilon_times_100 in tqdm.tqdm(range(1, 500, 2)):
-        g = GaussianDiscrete(epsilon=0.01 * epsilon_times_100, delta=0.00001)
+    for epsilon_times_100 in tqdm.tqdm(range(1, 200, 2)):
+        g = GaussianDiscrete(epsilon=0.1 * epsilon_times_100, delta=0.00001)
         sigma = g._scale
         sigmas += [sigma]
 
@@ -183,6 +188,8 @@ Benchmark: Discrete Gaussians \n\
         sigma_squared = sigma ** 2
 
         t_dg = []
+        t_dg_ls = []
+        t_dg_ls1 = []
         t_ibm_dg = []
         t_ibm_dpl = []
 
@@ -191,6 +198,19 @@ Benchmark: Discrete Gaussians \n\
             sampler.DiscreteGaussianSample(sigma_num, sigma_denom)
             elapsed = timeit.default_timer() - start_time
             t_dg.append(elapsed)
+
+
+        for i in range(num_attempts):
+            start_time = timeit.default_timer()
+            sampler.DiscreteGaussianSample__LaplaceSample(sigma_num, sigma_denom)
+            elapsed = timeit.default_timer() - start_time
+            t_dg_ls.append(elapsed)
+
+        for i in range(num_attempts):
+            start_time = timeit.default_timer()
+            sampler.DiscreteGaussianSample__LaplaceSample_k(sigma_num, sigma_denom)
+            elapsed = timeit.default_timer() - start_time
+            t_dg_ls1.append(elapsed)
 
         for i in range(num_attempts):
             start_time = timeit.default_timer()
@@ -206,12 +226,18 @@ Benchmark: Discrete Gaussians \n\
 
         # Compute mean and stdev
         dg_measured = numpy.array(t_dg[-measured_attempts:])
+        dgls_measured = numpy.array(t_dg_ls[-measured_attempts:])
+        dgls1_measured = numpy.array(t_dg_ls1[-measured_attempts:])
         ibm_dg_measured = numpy.array(t_ibm_dg[-measured_attempts:])
         ibm_dpl_measured = numpy.array(t_ibm_dpl[-measured_attempts:])
 
         # Convert s to ms
         dg_mean.append(dg_measured.mean() * 1000.0)
         dg_stdev.append(dg_measured.std() * 1000.0)
+        dgls_mean.append(dgls_measured.mean() * 1000.0)
+        dgls_stdev.append(dgls_measured.std() * 1000.0)
+        dgls1_mean.append(dgls1_measured.mean() * 1000.0)
+        dgls1_stdev.append(dgls1_measured.std() * 1000.0)
         ibm_dg_mean.append(ibm_dg_measured.mean() * 1000.0)
         ibm_dg_stdev.append(ibm_dg_measured.std() * 1000.0)
         ibm_dpl_mean.append(ibm_dpl_measured.mean() * 1000.0)
@@ -220,15 +246,24 @@ Benchmark: Discrete Gaussians \n\
 
     fig,ax1 = plt.subplots()
 
-    ax1.plot(sigmas, dg_mean, color='red', linewidth=1.0, label='DiscreteGaussianSample')
+
+    ax1.plot(sigmas, dgls_mean, color='red', linewidth=1.0, label='DiscreteGaussianSample / DiscreteLaplaceSample')
+    ax1.fill_between(sigmas, numpy.array(dgls_mean)-0.5*numpy.array(dgls_stdev), numpy.array(dgls_mean)+0.5*numpy.array(dgls_stdev),
+                     alpha=0.2, facecolor='k', linewidth=2, linestyle='dashdot', antialiased=True)
+
+    ax1.plot(sigmas, dgls1_mean, color='green', linewidth=1.0, label='DiscreteGaussianSample / DiscreteLaplaceSample\'')
+    ax1.fill_between(sigmas, numpy.array(dgls1_mean)-0.5*numpy.array(dgls1_stdev), numpy.array(dgls1_mean)+0.5*numpy.array(dgls1_stdev),
+                     alpha=0.2, facecolor='k', linewidth=2, linestyle='dashdot', antialiased=True)
+
+    ax1.plot(sigmas, dg_mean, color='blue', linewidth=1.0, label='DiscreteGaussianSample / DiscreteLaplaceSampleOpt')
     ax1.fill_between(sigmas, numpy.array(dg_mean)-0.5*numpy.array(dg_stdev), numpy.array(dg_mean)+0.5*numpy.array(dg_stdev),
                      alpha=0.2, facecolor='k', linewidth=2, linestyle='dashdot', antialiased=True)
 
-    ax1.plot(sigmas, ibm_dg_mean, color='blue', linewidth=1.0, label='IBM sample_dgauss')
+    ax1.plot(sigmas, ibm_dg_mean, color='pink', linewidth=1.0, label='IBM sample_dgauss')
     ax1.fill_between(sigmas, numpy.array(ibm_dg_mean)-0.5*numpy.array(ibm_dg_stdev), numpy.array(ibm_dg_mean)+0.5*numpy.array(ibm_dg_stdev),
                      alpha=0.2, facecolor='k', linewidth=2, linestyle='dashdot', antialiased=True)
 
-    ax1.plot(sigmas, ibm_dpl_mean, color='green', linewidth=1.0, label='IBM diffprivlib')
+    ax1.plot(sigmas, ibm_dpl_mean, color='purple', linewidth=1.0, label='IBM diffprivlib')
     ax1.fill_between(sigmas, numpy.array(ibm_dpl_mean)-0.5*numpy.array(ibm_dpl_stdev), numpy.array(ibm_dpl_mean)+0.5*numpy.array(ibm_dpl_stdev),
                      alpha=0.2, facecolor='k', linewidth=2, linestyle='dashdot', antialiased=True)
 

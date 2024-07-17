@@ -42,3 +42,10 @@ attribute [export_dafny] DiscreteLaplaceSample'
 attribute [export_dafny] DiscreteLaplaceSampleOpt
 attribute [export_dafny] DiscreteGaussianSampleLoop
 attribute [export_dafny] DiscreteGaussianSample
+
+-- FIXME: Delete
+
+attribute [export_dafny] DiscreteGaussianSampleLoop_LaplaceSample
+attribute [export_dafny] DiscreteGaussianSampleLoop_LaplaceSample'
+attribute [export_dafny] DiscreteGaussianSample_LaplaceSample
+attribute [export_dafny] DiscreteGaussianSample_LaplaceSample'

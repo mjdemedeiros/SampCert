@@ -44,4 +44,40 @@ def DiscreteGaussianSample (num : PNat) (den : PNat) : SLang ℤ := do
   let r ← probUntil (DiscreteGaussianSampleLoop num den t) (λ x : Int × Bool => x.2)
   return r.1
 
+-- FIXME: Delete, these are just to make plots for John
+
+def DiscreteGaussianSampleLoop_LaplaceSample (num den t : PNat) : SLang (Int × Bool) := do
+  let Y : Int ← DiscreteLaplaceSample t 1
+  let y : Nat := Int.natAbs Y
+  let n : Nat := (Int.natAbs (Int.sub (y * t * den) num))^2
+  let d : PNat := 2 * num * t^2 * den
+  let C ← BernoulliExpNegSample n d
+  return (Y,C)
+
+def DiscreteGaussianSampleLoop_LaplaceSample' (num den t : PNat) : SLang (Int × Bool) := do
+  let Y : Int ← DiscreteLaplaceSample' t 1
+  let y : Nat := Int.natAbs Y
+  let n : Nat := (Int.natAbs (Int.sub (y * t * den) num))^2
+  let d : PNat := 2 * num * t^2 * den
+  let C ← BernoulliExpNegSample n d
+  return (Y,C)
+
+def DiscreteGaussianSample_LaplaceSample (num : PNat) (den : PNat) : SLang ℤ := do
+  let ti : Nat := num.val / den
+  let t : PNat := ⟨ ti + 1 , by simp only [add_pos_iff, zero_lt_one, or_true] ⟩
+  let num := num^2
+  let den := den^2
+  let r ← probUntil (DiscreteGaussianSampleLoop_LaplaceSample num den t) (λ x : Int × Bool => x.2)
+  return r.1
+
+
+def DiscreteGaussianSample_LaplaceSample' (num : PNat) (den : PNat) : SLang ℤ := do
+  let ti : Nat := num.val / den
+  let t : PNat := ⟨ ti + 1 , by simp only [add_pos_iff, zero_lt_one, or_true] ⟩
+  let num := num^2
+  let den := den^2
+  let r ← probUntil (DiscreteGaussianSampleLoop_LaplaceSample' num den t) (λ x : Int × Bool => x.2)
+  return r.1
+
+
 end SLang
