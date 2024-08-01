@@ -8,11 +8,18 @@ Authors: Jean-Baptiste Tristan
 #include <unistd.h>
 #include <random>
 
+#include <stdio.h> // Profiling only
+
 #ifdef __APPLE__
     std::random_device generator;
 #else
     std::mt19937_64 generator(time(NULL));
 #endif
+
+// Set via enviornment variable?
+static bool PROFILE_FFI_CALLS = true;
+int FFI_LOG;
+
 
 extern "C" lean_object * prob_UniformByte (lean_object * eta) {
     lean_dec(eta);
@@ -28,6 +35,17 @@ extern "C" lean_object * prob_UniformByte (lean_object * eta) {
 
 
 extern "C" lean_object * prob_UniformP2(lean_object * a, lean_object * eta) {
+    if (PROFILE_FFI_CALLS) {
+        char message[100];
+        if (lean_is_scalar(a)) {
+            size_t n = lean_unbox(a);
+            snprintf(message, 100, "%lu\n", n);
+        } else {
+            lean_internal_panic("Large boxed number");
+        }
+        write(FFI_LOG, message, strlen(message));
+    }
+
     lean_dec(eta);
     if (lean_is_scalar(a)) {
         size_t n = lean_unbox(a);
@@ -85,8 +103,20 @@ extern "C" lean_object * prob_While(lean_object * condition, lean_object * body,
 }
 
 extern "C" lean_object * my_run(lean_object * a) {
+    if (PROFILE_FFI_CALLS) {
+        remove("./uniform_samples_prof");
+        FFI_LOG = open("./uniform_samples_prof", O_WRONLY | O_CREAT | O_EXCL, 0777);
+        if (FFI_LOG < 0) {
+            lean_internal_panic("FFI_LOG: Error opening log file");
+        }
+    }
+
     lean_object * comp = lean_apply_1(a,lean_box(0));
     lean_object * res = lean_io_result_mk_ok(comp);
+
+    if (PROFILE_FFI_CALLS) {
+        close(FFI_LOG);
+    }
     return res;
 } 
 
