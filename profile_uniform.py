@@ -35,19 +35,23 @@ def run_sample_set(N, num, den, mix, norm=True):
     return ms, mc
 
 # Histogram for a single parameter set
-def plot_sample_set(N, num, den, mix):
+def plot_sample_set(N, num, den, mix, out="test.pdf"):
     sizes, counts = run_sample_set(N, num, den, mix, norm=False)
     norm_counts = counts / np.sum(counts)
     mean_total_calls = np.sum(counts) / float(N)
     plt.figure(figsize=(10,6))
     plt.title("{} x discreteGaussianSample({}, {}, {}); mean total calls: {}".format(N, num, den, mix, mean_total_calls))
-    plt.bar(sizes, norm_counts, color="orange", width=1.0)
+    plt.plot(sizes, norm_counts, color="orange", marker='.')
     plt.xlabel("Uniform Sample Size")
     plt.ylabel("Number of calls")
-    plt.savefig("test.pdf")
+    # print("Max call size: {}".format(np.max(sizes)))
+    # print("Number of max calls: {}".format(counts[np.argmax(sizes)]))
+    plt.savefig(out)
 
 
 if __name__ == "__main__":
     # for j in tqdm.tqdm(range(0, 2)):
     #     a, b = run_sample_set(100, 1, 1, j, norm=False)
-    plot_sample_set(100, 2, 2, 1)
+    plot_sample_set(100, 1, 1, 1, out="1.pdf")
+    plot_sample_set(100, 5, 5, 1, out="5.pdf")
+    plot_sample_set(100, 10, 10, 1, out="10.pdf")
