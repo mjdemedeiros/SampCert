@@ -54,6 +54,11 @@ def plot_sample_set(N, num, den, mix, out="test.pdf"):
 if __name__ == "__main__":
     # for j in tqdm.tqdm(range(0, 2)):
     #     a, b = run_sample_set(100, 1, 1, j, norm=False)
-    plot_sample_set(100, 1, 1, 1, out="1.pdf")
-    plot_sample_set(100, 5, 5, 1, out="5.pdf")
-    plot_sample_set(100, 10, 10, 1, out="10.pdf")
+    # plot_sample_set(100, 1, 1, 1, out="1.pdf")
+    # plot_sample_set(100, 5, 5, 1, out="5.pdf")
+    # plot_sample_set(100, 10, 10, 1, out="10.pdf")
+    # plot_sample_set(100, 20, 20, 5, out="20_5.pdf")
+    # plot_sample_set(100, 20, 20, 10, out="20_10.pdf")
+    # plot_sample_set(100, 50, 50, 1, out="50.pdf")
+    # plot_sample_set(100, 80, 80, 1, out="80.pdf")
+    plot_sample_set(100, 90, 90, 1, out="90.pdf")
